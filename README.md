@@ -14,8 +14,8 @@ Sistema de gestión de entregas desarrollado con Spring Boot y Oracle Database. 
 - Maven para gestión de dependencias
 
 ## Requisitos Previos
-- Java 17 o superior
-- Oracle Database (XE o superior)
+- Java 17 
+- Oracle Database 11g 
 - Maven
 - IDE compatible con Java (recomendado: IntelliJ IDEA o Eclipse)
 
