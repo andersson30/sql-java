@@ -1,12 +1,12 @@
 # API de Gestión de Comerciantes
 
-Esta API proporciona endpoints para la gestión de comerciantes y establecimientos, incluyendo autenticación JWT y exportación de datos.
+Este proyecto proporciona una API REST para la gestión de comerciantes y establecimientos, con funcionalidades de autenticación y autorización basadas en JWT.
 
 ## Requisitos Previos
 
 - Java 17 o superior
 - Maven
-- Base de datos Oracle con las tablas y funciones necesarias configuradas
+- Base de datos Oracle
 
 ## Configuración
 
@@ -15,14 +15,10 @@ Esta API proporciona endpoints para la gestión de comerciantes y establecimient
 spring.datasource.url=jdbc:oracle:thin:@//localhost:1521/XEPDB1
 spring.datasource.username=tu_usuario
 spring.datasource.password=tu_password
+jwt.secret=tu_clave_secreta_jwt
 ```
 
-2. Ejecutar la aplicación:
-```bash
-mvn spring-boot:run
-```
-
-## Endpoints
+## Endpoints de la API
 
 ### Autenticación
 
@@ -50,6 +46,7 @@ Respuesta:
 ```bash
 curl -X GET http://localhost:8080/api/comerciantes/exportar-activos \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Accept: text/csv" \
   --output comerciantes_activos.csv
 ```
 
@@ -58,48 +55,129 @@ El archivo CSV generado tendrá el siguiente formato:
 Nombre o Razón Social|Municipio|Teléfono|Correo Electrónico|Fecha de Registro|Estado|Cantidad de Establecimientos|Total Ingresos|Cantidad de Empleados
 ```
 
-Notas:
-- Este endpoint requiere autenticación JWT
-- Solo usuarios con rol "Administrador" pueden acceder
-- El archivo se descarga con el nombre "comerciantes_activos.csv"
-- Los campos están separados por el carácter pipe (|)
-- La fecha se muestra en formato dd/MM/yyyy
+#### Obtener Todos los Comerciantes
+```bash
+curl -X GET http://localhost:8080/api/comerciantes \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+#### Obtener Comerciante por ID
+```bash
+curl -X GET http://localhost:8080/api/comerciantes/{id} \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+#### Crear Nuevo Comerciante
+```bash
+curl -X POST http://localhost:8080/api/comerciantes \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre_razon_social": "Nuevo Comerciante S.A.",
+    "municipio": "Bogotá",
+    "telefono": "3111111111",
+    "correo_electronico": "nuevo@empresa.com",
+    "estado": "Activo"
+  }'
+```
+
+#### Actualizar Comerciante
+```bash
+curl -X PUT http://localhost:8080/api/comerciantes/{id} \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre_razon_social": "Comerciante Actualizado S.A.",
+    "municipio": "Medellín",
+    "telefono": "3222222222",
+    "correo_electronico": "actualizado@empresa.com",
+    "estado": "Activo"
+  }'
+```
+
+#### Eliminar Comerciante
+```bash
+curl -X DELETE http://localhost:8080/api/comerciantes/{id} \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+### Establecimientos
+
+#### Obtener Todos los Establecimientos
+```bash
+curl -X GET http://localhost:8080/api/establecimientos \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+#### Obtener Establecimiento por ID
+```bash
+curl -X GET http://localhost:8080/api/establecimientos/{id} \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+#### Crear Nuevo Establecimiento
+```bash
+curl -X POST http://localhost:8080/api/establecimientos \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Nuevo Establecimiento",
+    "ingresos": 1000000.00,
+    "numero_empleados": 10,
+    "id_comerciante": 1
+  }'
+```
+
+#### Actualizar Establecimiento
+```bash
+curl -X PUT http://localhost:8080/api/establecimientos/{id} \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Establecimiento Actualizado",
+    "ingresos": 1500000.00,
+    "numero_empleados": 15,
+    "id_comerciante": 1
+  }'
+```
+
+#### Eliminar Establecimiento
+```bash
+curl -X DELETE http://localhost:8080/api/establecimientos/{id} \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
 
 ## Roles y Permisos
 
 - **Administrador**: Acceso completo a todos los endpoints
-- **Auxiliar de Registro**: Acceso limitado a ciertos endpoints
+- **Auxiliar de Registro**: Acceso limitado a operaciones básicas
+
+## Notas Importantes
+
+1. Todos los endpoints (excepto login) requieren autenticación mediante token JWT
+2. El token debe incluirse en el header `Authorization` con el formato `Bearer {token}`
+3. El endpoint de exportación de comerciantes activos solo está disponible para usuarios con rol "Administrador"
+4. Los archivos CSV se generan con separador pipe (|)
+5. Las fechas se muestran en formato dd/MM/yyyy
 
 ## Manejo de Errores
 
 La API utiliza códigos de estado HTTP estándar:
-- 200: Éxito
-- 400: Error en la solicitud
-- 401: No autorizado
-- 403: Acceso denegado
-- 500: Error interno del servidor
+- 200: OK
+- 201: Created
+- 400: Bad Request
+- 401: Unauthorized
+- 403: Forbidden
+- 404: Not Found
+- 500: Internal Server Error
 
-## Ejemplos de Uso
+## Ejecución del Proyecto
 
-1. Autenticarse como administrador:
+1. Clonar el repositorio
+2. Configurar las variables de entorno
+3. Ejecutar con Maven:
 ```bash
-# Obtener token
-TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "correo_electronico": "admin@empresa.com",
-    "contrasena": "Admin123"
-  }' | jq -r '.token')
-
-# Exportar CSV usando el token
-curl -X GET http://localhost:8080/api/comerciantes/exportar-activos \
-  -H "Authorization: Bearer $TOKEN" \
-  --output comerciantes_activos.csv
+mvn spring-boot:run
 ```
 
-## Notas Importantes
-
-1. El token JWT debe incluirse en el header `Authorization` con el prefijo "Bearer"
-2. El token expira después de un tiempo determinado
-3. Para exportar el CSV, asegúrese de tener suficiente espacio en disco
-4. Los datos exportados son de solo lectura y no pueden ser modificados 
+El servidor se iniciará en `http://localhost:8080` 
