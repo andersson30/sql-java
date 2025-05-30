@@ -11,4 +11,7 @@ import java.util.List;
 public interface ComercianteRepository extends JpaRepository<Comerciante, Long> {
     @Query("SELECT DISTINCT c.municipio FROM Comerciante c ORDER BY c.municipio")
     List<String> findDistinctMunicipios();
+
+    @Query("SELECT COUNT(c) > 0 FROM Comerciante c WHERE c.municipio = :municipio")
+    boolean existsByMunicipio(String municipio);
 } 

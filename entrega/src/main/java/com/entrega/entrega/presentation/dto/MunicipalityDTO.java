@@ -8,5 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MunicipalityDTO {
+    private Long id;
     private String nombre;
 } 
